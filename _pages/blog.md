@@ -1,9 +1,7 @@
 ---
 layout: default
-permalink: /blog/
-title: blog
-nav: true
-nav_order: 1
+permalink: /
+title: Teddy's Blog
 pagination:
   enabled: true
   collection: posts
