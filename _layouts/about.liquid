@@ -2,6 +2,16 @@
 layout: default
 ---
 <div class="post">
+  {% if page.profile and page.profile.align == 'top' and page.profile.image %}
+    {% assign profile_image_path = page.profile.image | prepend: 'assets/img/' %}
+    {% capture sizes %}100vw{% endcapture %}
+    <div class="profile-top mb-3">
+      {%
+        include figure.liquid loading="eager" path=profile_image_path class="img-fluid w-100 rounded" sizes=sizes alt=page.profile.image
+        cache_bust=true
+      %}
+    </div>
+  {% endif %}
   <header class="post-header">
     <h1 class="post-title">
       {% if site.title == 'blank' %}
@@ -15,7 +25,7 @@ layout: default
   </header>
 
   <article>
-    {% if page.profile %}
+    {% if page.profile and page.profile.align != 'top' %}
       <div class="profile float-{% if page.profile.align == 'left' %}left{% else %}right{% endif %}">
         {% if page.profile.image %}
           {% assign profile_image_path = page.profile.image | prepend: 'assets/img/' %}
