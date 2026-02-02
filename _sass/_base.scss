@@ -592,9 +592,18 @@ footer.sticky-bottom {
 }
 
 .post-title {
+  // font-size: clamp(4.25rem, 3.5vw, 3.25rem);
+  // line-height: 1.15;
+
   mjx-container[jax="CHTML"][display="true"] {
     display: unset;
   }
+}
+
+// About page: make the name/title bigger without affecting other pages.
+.about-page .post-title {
+  font-size: clamp(2.75rem, 4.5vw, 3.75rem);
+  line-height: 1.1;
 }
 
 .post-list {
@@ -748,9 +757,6 @@ footer.sticky-bottom {
 
     li {
       margin-bottom: 1rem;
-
-      .preview {
-      }
 
       .abbr {
         margin-bottom: 0.5rem;
