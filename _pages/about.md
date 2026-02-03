@@ -29,14 +29,14 @@ social: true # includes social icons at the bottom of the page
 #   limit: 3 # leave blank to include all the blog posts
 ---
 
-I am a CERN physicist who worked on the CMS Experiment during my PhD at Imperial College London. 
+I am a CERN physicist who worked on the CMS Experiment during my PhD at Imperial College London from 2021 to 2025. 
 My [thesis]({{ '/assets/thesis.pdf' | relative_url }}) was on searches for dark matter production at the LHC, which involved finding rare signatures of new physics in 100+ TB datasets of messy particle collisions. Ultimately, my work led to the strongest-ever constraints for certain dark matter theories. An additional thesis project included using graph neural networks for electron/photon identification, resulting in nearly a 30% increase in signal efficiency for a fixed background rejection compared to previous methods using BDTs, while omitting the need for manual feature extraction.  
 
 I graduated from the University of Manchester in 2020 with a first-class MPhys in theoretical physics. My master's thesis was on using artificial intelligence to detect cardiac arrhythmias using a patient's ECG data. Different models were compared—including CNNs, RNNs and hybrid models—with the results being comparable to state-of-the-art.
 
-I was also the technical lead on a [patented](https://patents.google.com/patent/EP3973875B1) algorithm that produces a full 12-lead ECG using only sequential measurements of a single electrode. Performed in collaboration with cardiac [Professor Martin Ugander](https://profiles.sydney.edu.au/martin.ugander) at the University of Sydney, the algorithm produces clinical-grade ECGs without the approximations that prior few-electrode methods required — making high quality cardiac monitoring significantly more portable.
+I was also the technical lead on a [patented](https://patents.google.com/patent/EP3973875B1) algorithm that produces a full 12-lead ECG using only sequential measurements of a single electrode, as oppsed to the simultaneous measurements of 10 electrodes. Performed in collaboration with cardiologist [Professor Martin Ugander](https://profiles.sydney.edu.au/martin.ugander) at the University of Sydney, the algorithm produces clinical-grade ECGs without the approximations that prior few-electrode methods required — making high quality cardiac monitoring significantly more portable.
 
-Now I am looking to transition into machine learning research in industry, where I can effectively apply my expertise in model validation and statistical rigour to challenging real-world problems.   
+Now I am looking to transition into machine learning research in industry, where I can apply my expertise in model validation and statistical rigour to challenging real-world problems.   
 
 
 
