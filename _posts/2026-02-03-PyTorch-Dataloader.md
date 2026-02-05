@@ -28,9 +28,9 @@ Starting with a PyTorch dataset, this will be passed into our dataloader class, 
 4. We want to limit the number of batches that are pre-loaded to some user-defined limit, even if training slows for some reason, so that the usage memory doesn't explode.
 
 Before diving into our multiprocessing dataloader, we will start by defining our dataset, and then find a baseline with a non-multiprocessing dataloader. 
-
-## Python Imports
-
+<br/>
+## **Python Imports**
+<br/>
 Load in the necessary libraries:
 
 ```python
@@ -40,9 +40,9 @@ import time
 from typing import Iterator, Dict
 import multiprocessing as mp
 ```
-
-## Dataset Class
-
+<br/>
+## **Dataset Class**
+<br/>
 We will use fake data which is created on the fly, chosen such that it takes a non-negligible amount of time to retrieve a single batch. The specific details of this are of course not that important, and any other type of data could easily be used instead. For this, we randmly sample `n_points` in 3D space between $$x,y,z \in [0, 1]$$, then find the k-nearest neighbours for each point. The indices of the k-nearest neighbours are then returned as our data. 
 
 ```python
@@ -89,9 +89,9 @@ print("sample shape:", sample.shape)
 ```text
 sample shape: (200, 16)
 ```
-
-## Non-multiprocessing Dataloader
-
+<br/>
+## **Non-multiprocessing Dataloader**
+<br/>
 As a baseline, we will compare our final multiprocessing dataloader to a simple single-processor dataloader, called `BasicDataLoader`. The full code is given below, and explained after:
 
 ```python
@@ -142,9 +142,9 @@ def __iter__(self) -> Iterator:
 ```
 
 For each iteration of this loop, we get the indices for a single batch, `batch_idxs`, loop over these to create the batch, called `batch_data`, convert to an array then yield it.  
-
-#### Speed of Non-multiprocessing Dataloader
-
+<br/>
+#### **Speed of Non-multiprocessing Dataloader**
+<br/>
 With a `batch_size` of 300, we can find the time it takes to loop over every batch:
 
 ```python
@@ -165,10 +165,9 @@ print(f"Processed {n_batches} batches in {time.time() - now:.2f} seconds, time p
 ```text
 Processed 167 batches in 142.36 seconds, time per batch 0.8524 seconds
 ```
-
-
-## Multiprocessing Dataloader
-
+<br/>
+## **Multiprocessing Dataloader**
+<br/>
 The most important aspect of creating a multiprocessing dataloader is ensuring the different workers do not try and access the same data at the same time, which would result in race conditions. To overcome this, we will use the [Queue](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue) class in the Python `multiprocessing` library. This class is a first-in-first-out queue, so elements added first will leave before those added later, and it automatically handles multiple processes trying to access it simultaneously: it is process-safe. 
 
 Using this we will create two queues. One is called `task_q`, which holds `[batch_idx, batch_indices]`---where `batch_idx` is the index of that specific batch, and `batch_indices` is the indices of the samples in the batch--and which the worker processes pull from. 
@@ -210,7 +209,7 @@ def _mp_worker(dataset: Dataset, task_q: mp.Queue, out_q: mp.Queue):
         out_q.put(_END)
 ```
 <!-- On line 1 we have the special token called `_END`, which signifies to the worker to stop.  -->
-When the function is run, it starts the `while` loop. This repeatedly loops over and tries to get the next task from the `task_q`. If it is the `_END` token, we break the loop and send an `_END` token to the `out_q`. If this isn't the end, and task is a genuine `[batch_idx, batch_indices]`, then it makes the batch (lines 14-15), and puts the batch in the `out_q` (line 18).  
+When the function is run, it starts the `while` loop on line 5. This repeatedly loops over and tries to get the next task from the `task_q` (line 7). If it is the `_END` token (line 10-11), we break the loop and send an `_END` token to the `out_q` (line 25). If this isn't the end, and the task is a genuine `[batch_idx, batch_indices]`, then it makes the batch (lines 14-15), and puts the batch in the `out_q` (line 18). If there is an error, the code moves to line 21, and sends the error to the `out_q`.
 
 We can now define our dataloader, which is shown in full below and explained after:
 
@@ -224,9 +223,9 @@ class MPBatchLoader:
         prefetch_batches: int = 5,
         mp_start_method: str = "spawn",
     ):
-        self.dataset = dataset
-        self.batch_size = batch_size
-        self.num_workers = num_workers
+        self.dataset = dataset                   # pytorch dataset
+        self.batch_size = batch_size             # number of samples in each batch
+        self.num_workers = num_workers           # how many processes simultaneously load the data
         self.prefetch_batches = prefetch_batches # Number of batches to load in advance
         
         # get idxs for batches
@@ -312,19 +311,18 @@ Starting with the `__init__` method:
 
 ```python 
     def __init__(...):
-        self.dataset = dataset
-        self.batch_size = batch_size
-        self.num_workers = num_workers
+        self.dataset = dataset                   # pytorch dataset
+        self.batch_size = batch_size             # number of samples in each batch
+        self.num_workers = num_workers           # how many processes simultaneously load the data
         self.prefetch_batches = prefetch_batches # Number of batches to load in advance
 ```
 we pass in the pytorch dataset, `dataset`, the batch size, `batch_size`, 
 the number of workers that simultaneously load the data, `num_workers`, and the number of batches that we want to load in advance, `prefetch_batches`.
 
-Like before, we then create the list of samples indices for each batch:
+Like before, we then create the list of sample indices for each batch:
 ```python 
     def __init__(...):
         ... 
-
         # get idxs for batches
         data_idxs = np.arange(len(self.dataset))
         # ignore shuffling for now
@@ -344,7 +342,7 @@ Now we setup all the multiprocessing objects:
 ```
 The context `ctx` defines how the new processes are started, and what they copy from the parent process, this includes copying the parent's memory, threads, python interpreter state and so on. A detailed overview of the different methods can be found [here](https://dev.to/imsushant12/python-multiprocessing-start-methods-pools-and-communication-4o6d). In brief: one method is `spawn`, which starts a new python interpreter, re-importing all modules, and objects are passed to it by the parent process via pickling; another is `fork`, which shares a memory state with the parent process, but does not copy over threads. For our case, which might include additional threads from training on a GPU with CUDA, we want these threads available on the worker process, so we use `spawn`. We then use a context `ctx` to ensure that all our cross-process objects are created the same way, enabling communication between them.
 
-With the context, we create two queues: `task_q` which is no limit to number of elements added (i.e. it is unbounded); and `out_q` which we limit to size `prefetch_batches` to stop infinite memory increases. Finally, we make a list called `workers`, which our worker processes will be added to.  
+With the context, we create two queues: `task_q` which has no limit to number of elements added (i.e. it is unbounded); and `out_q` which we limit to size `prefetch_batches` to stop infinite memory increases. Finally, we make a list called `workers`, which our worker processes will be added to.  
 
 Now we can get onto the juicy bit: the `__iter__` method. The overview of the method is as follows:
 1. Create worker processes
@@ -352,7 +350,7 @@ Now we can get onto the juicy bit: the `__iter__` method. The overview of the me
 3. In a while loop, retrieve batches from `out_q`, and store these in the `reorder` dictionary. This is needed because the batches might arrive out of order. 
 4. If the next batch is in `reorder`, then yield it and remove it from `reorder`.
 5. Every time we yield a batch, add another task to the `task_q`. By limiting what is added to `task_q`, we limit the size of the `out_q`, stopping the memory from exploding. 
-6. After all batches have been yielded, or the loop is terminated early, send a stop signal to all the workers, and drain the remaining batches in the `out_q`.  
+6. After all batches have been yielded, or the loop is terminated early, send a stop signal to all the workers, and drain any remaining batches in the `out_q`.  
 
 In the code itself, the method starts by defining the following variables:
 ```python 
@@ -364,11 +362,10 @@ In the code itself, the method starts by defining the following variables:
         reorder: Dict[int, np.ndarray] = {}    # store out-of-order batches here
 ```
 
-We then start the worker processes, and append them to list called `workers`:
+We then start the worker processes, and append them to the list called `workers`:
 ```python
     def __iter__(self) -> Iterator[np.ndarray]:
         ...
-
         # start workers
         self.workers = [
             self.ctx.Process(target=_mp_worker, args=(self.dataset, self.task_q, self.out_q), daemon=True)
@@ -388,8 +385,10 @@ Next we submit the first set of tasks, but we catch the case where the number of
             submit_idx += 1
 ```
 
-Now for the main `while` loop:
+Now for the main `while` loop, explained below:
 ```python
+    def __iter__(self) -> Iterator[np.ndarray]:
+        ...
         try:
             while next_batch_idx < n_total:
                 # get the next completed batch from the out queue
@@ -414,11 +413,13 @@ Now for the main `while` loop:
                         self.task_q.put((submit_idx, self.batched_data_idxs[submit_idx]))
                         submit_idx += 1
 ```
-On line 4 we take the next bit of data from `out_q`. On lines 7-8 we check if it's an error message from the worker, if so we raise that error. If not, we get the data on line 11, and add it to the `reorder` dict on line 13. We then check if the next batch is in `reorder` on line 16, if so we yield it, and add 1 to the `next_batch_idx`. Finally, if a batch is yield, we add another task to the `task_q` on lines 21-23. 
+On line 6 we take the next bit of data from `out_q`. On lines 9-10 we check if it's an error message from the worker, if so we raise that error. If not, we get the data on line 13, and add it to the `reorder` dict on line 15. We then check if the next batch is in `reorder` on line 18, if so we yield it, and add 1 to the `next_batch_idx`. Finally, if a batch is yielded, we add another task to the `task_q` on lines 23-25. 
 
-Finally, if all batches have been yielded, or if the loop is terminated early (such as only looping over one batch as a test), we move to the `finally` block. 
+If all batches have been yielded, or if the loop is terminated early (such as only looping over one batch as a test), we move to the `finally` block. 
 
 ```python
+    def __iter__(self) -> Iterator[np.ndarray]:
+        ...
         finally:
             # tell workers to stop (always)
             for _ in range(self.num_workers):
@@ -437,10 +438,10 @@ Finally, if all batches have been yielded, or if the loop is terminated early (s
                 p.join()
 ```
 
-On lines 3-4 we send the `_END` token to the workers which, looking back on the worker function `_mp_worker` above, we see that it breaks the worker loop, adds the `_END` token to `out_q`, then exits. Next, on lines 9-12 we drain the `out_q` until all `_END` tokens have been retrieved. Lastly, on lines 15-16, we wait for the processes to exit.
-
-#### Speed of Multiprocessing Dataloader
-
+On lines 5-6 we send the `_END` token to the workers which, looking back on the worker function `_mp_worker` above, we see that it breaks the worker loop, adds the `_END` token to `out_q`, then exits. Next, on lines 11-14 we drain the `out_q` until all `_END` tokens have been retrieved. Lastly, on lines 17-18, we wait for the processes to exit.
+<br/>
+#### **Speed of Multiprocessing Dataloader**
+<br/>
 Using the same batch size of 300 as before, we can see how long it takes to loop over every batch:
 
 ```python
