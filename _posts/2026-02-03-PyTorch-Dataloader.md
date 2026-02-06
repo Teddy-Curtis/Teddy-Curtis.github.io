@@ -11,7 +11,7 @@ toc:
 ---
 
 For many machine learning problems, loading data can be a bottleneck in the training process. To reduce this wait time and train more efficiently, it is therefore beneficial to 
-load future batches *whilst the model is being trained on the current one*. This is already possible with the PyTorch [DataLoader](https://github.com/PyTorch/PyTorch/blob/main/torch/utils/data/dataloader.py) class, where you can input `num_workers` for the number of worker processes that simultaneously load in the data. In this post, we will design a simplified version of the PyTorch dataloader, to get an idea of the underlying concepts and the design trade-offs. 
+load future batches *whilst the model is being trained on the current one*. This is already possible with the PyTorch [DataLoader](https://github.com/PyTorch/PyTorch/blob/main/torch/utils/data/dataloader.py) class, where you can input `num_workers` for the number of worker processes that simultaneously load in the data. In this post, we will design a simplified version of the PyTorch dataloader, to get an idea of the underlying concepts and the design trade-offs. The full python script for this blog post can be found on my GitHub account [here](https://github.com/Teddy-Curtis/multiprocessing_dataloader). 
 
 Given that loading data can be quite CPU heavy---especially if the data is transformed as it is being loaded in---we will use the Python multiprocessing library, which avoids the limitations of the Python GIL. Omitting many of the key implementation details, an overview of the pipeline is given in the following figure:
 
