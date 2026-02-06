@@ -2,16 +2,16 @@
 layout: post
 title: Multiprocessing Dataloader
 date: 2026-02-02 10:45:00
-description: Simplified implementation of the pytorch dataloader
-tags: pytorch multiprocessing dataloader
-categories: pytorch
+description: Simplified implementation of the PyTorch dataloader
+tags: PyTorch multiprocessing dataloader
+categories: PyTorch
 disqus_comments: true
 toc:
   beginning: true
 ---
 
-For many machine learning problems, loading data can be a bottleneck in the training process. To reduce this wait time and train more efficienctly, it is therefore beneficial to 
-load future batches *whilst the model is being trained on the current one*. This is already possible with the PyTorch [DataLoader](https://github.com/pytorch/pytorch/blob/main/torch/utils/data/dataloader.py) class, where you can input `num_workers` for the number of worker processes that simultaneously load in the data. In this post, we will design a simplified version of the pytorch dataloader, to get an idea of the underlying concepts and the design trade-offs. 
+For many machine learning problems, loading data can be a bottleneck in the training process. To reduce this wait time and train more efficiently, it is therefore beneficial to 
+load future batches *whilst the model is being trained on the current one*. This is already possible with the PyTorch [DataLoader](https://github.com/PyTorch/PyTorch/blob/main/torch/utils/data/dataloader.py) class, where you can input `num_workers` for the number of worker processes that simultaneously load in the data. In this post, we will design a simplified version of the PyTorch dataloader, to get an idea of the underlying concepts and the design trade-offs. 
 
 Given that loading data can be quite CPU heavy---especially if the data is transformed as it is being loaded in---we will use the Python multiprocessing library, which avoids the limitaions of the Python GIL. Omitting many of the key implementation details, an overview of the pipeline is given in the following figure:
 
@@ -25,7 +25,7 @@ The dataloader class will read in a PyTorch dataset, and then spawn N worker pro
 <!-- It does not, however, come without its problems. Below are a few of the issues that need to be considered when making a multiprocessing dataloader: -->
 1. We do not want duplicate batches.
 2. Workers can finish loading a batch at different times, but we want batches to always be loaded in a predictable order. 
-3. We want to limit the number of batches that are pre-loaded to some user-defined limit, even if training slows for some reason, so that the usage memory doesn't explode.
+3. We want to limit the number of batches that are preloaded to some user-defined limit, even if training slows for some reason, so that the usage memory doesn't explode.
 
 Before diving into our multiprocessing dataloader, we will start by defining our dataset, and then find a baseline with a non-multiprocessing dataloader. 
 <br/>
@@ -102,7 +102,7 @@ The `BasicDataLoader` below takes in the PyTorch `dataset` and a `batch_size`, c
 # define a very basic dataLoader that just creates data when the iterator is called 
 class BasicDataLoader():
     def __init__(self, dataset : Dataset , batch_size: int = 1000):
-        self.dataset = dataset        # pass in pytorch dataset
+        self.dataset = dataset        # pass in PyTorch dataset
         self.batch_size = batch_size  # number of samples in each batch
         
         # get idxs for batches
@@ -194,7 +194,7 @@ def _mp_worker(dataset: Dataset, task_q: mp.Queue, out_q: mp.Queue):
         # as a double check, when ending, send _END to the out_q
         out_q.put(_END)
 ```
-Each worker blocks on `task = task_q.get()`, waiting until tasks become available. When it recieves a task, it first checks (line 10-11) if it is an end token, `_END`, if so it breaks the loop and sends an  `_END` token to the `out_q` (line 25). If this isn't the end, and the task is a genuine `[batch_idx, batch_indices]`, then it makes the batch (lines 14-15), and puts the batch in the `out_q` (line 18). If there is an error, the code moves to line 21, and sends the error to the `out_q`.
+Each worker blocks on `task = task_q.get()`, waiting until tasks become available. When it receives a task, it first checks (line 10-11) if it is an end token, `_END`, if so it breaks the loop and sends an `_END` token to `out_q` (line 25). If this isn't the end, and the task is a genuine `[batch_idx, batch_indices]`, then it makes the batch (lines 14-15), and puts the batch in `out_q` (line 18). If there is an error, the code moves to line 21, and sends the error to `out_q`.
 
 ### **Multiprocessing DataLoader Class**
 
@@ -210,7 +210,7 @@ class MPBatchLoader:
         prefetch_batches: int = 5,
         mp_start_method: str = "spawn",
     ):
-        self.dataset = dataset                   # pytorch dataset
+        self.dataset = dataset                   # PyTorch dataset
         self.batch_size = batch_size             # number of samples in each batch
         self.num_workers = num_workers           # how many processes simultaneously load the data
         self.prefetch_batches = prefetch_batches # Number of batches to load in advance
@@ -294,11 +294,11 @@ class MPBatchLoader:
                 p.join()
 ```
 
-Starting with the `__init__` method, we pass in the pytorch dataset, `dataset`, the batch size, `batch_size`, 
+Starting with the `__init__` method, we pass in the PyTorch dataset, `dataset`, the batch size, `batch_size`, 
 the number of workers that simultaneously load the data, `num_workers`, and the number of batches that we want to load in advance, `prefetch_batches`. Following this, we then create the list of sample indices for each batch.
 ```python 
     def __init__(...):
-        self.dataset = dataset                   # pytorch dataset
+        self.dataset = dataset                   # PyTorch dataset
         self.batch_size = batch_size             # number of samples in each batch
         self.num_workers = num_workers           # how many processes simultaneously load the data
         self.prefetch_batches = prefetch_batches # Number of batches to load in advance
@@ -333,12 +333,12 @@ Now we can get onto the juicy bit: the `__iter__` method. The overview of the me
 2. Submit tasks to `task_q` up to the number of `prefetch_batches`. E.g. submit 20 tasks. 
 3. In a while loop, retrieve batches from `out_q`, and store these in the `reorder` dictionary. This is needed because the batches might arrive out of order. 
 4. If the next batch is in `reorder`, then yield it and remove it from `reorder`.
-5. Every time we yield a batch, add another task to the `task_q`. By limiting what is added to `task_q`, we limit the size of the `out_q`, stopping the memory from exploding. 
-6. After all batches have been yielded, or the loop is terminated early, send a stop signal to all the workers, and drain any remaining batches in the `out_q`.  
+5. Every time we yield a batch, add another task to `task_q`. By limiting what is added to `task_q`, we limit the size of `out_q`, stopping the memory from exploding. 
+6. After all batches have been yielded, or the loop is terminated early, send a stop signal to all the workers, and drain any remaining batches in `out_q`.  
 
 In the code itself, the method starts by defining the following variables:
 
-In the code itself, we start by defining the relevant variables, including the index of the last submitted bactch, `submit_idx`, and the index of the next batch to be yielded, `next_batch_idx`. After this we start the worker processes, and append them to the `self.workers` list. Next we submit the first set of tasks, but we catch the case where the number of tasks might be less than the number of `prefetch_batches`, otherwise we would get an index error when trying to retrieve data that doesn't exist in the dataset. 
+In the code itself, we start by defining the relevant variables, including the index of the last submitted batch, `submit_idx`, and the index of the next batch to be yielded, `next_batch_idx`. After this we start the worker processes, and append them to the `self.workers` list. Next we submit the first set of tasks, but we catch the case where the number of tasks might be less than the number of `prefetch_batches`, otherwise we would get an index error when trying to retrieve data that doesn't exist in the dataset. 
 ```python 
     def __iter__(self) -> Iterator[np.ndarray]:
         n_total = len(self.batched_data_idxs)  # total number of batches
@@ -390,7 +390,7 @@ Now for the main `while` loop, explained below:
                         self.task_q.put((submit_idx, self.batched_data_idxs[submit_idx]))
                         submit_idx += 1
 ```
-On line 6 we take the next bit of data from `out_q`. On lines 9-10 we check if it's an error message from the worker, if so we raise that error. If not, we get the data on line 13, and add it to the `reorder` dict on line 15. We then check if the next batch is in `reorder` on line 18, if so we yield it, and add 1 to the `next_batch_idx`. Finally, if a batch is yielded, we add another task to the `task_q` on lines 23-25. 
+On line 6 we take the next bit of data from `out_q`. On lines 9-10 we check if it's an error message from the worker, if so we raise that error. If not, we get the data on line 13, and add it to the `reorder` dictionary on line 15. We then check if the next batch is in `reorder` on line 18, if so we yield it, and add 1 to the `next_batch_idx`. Finally, if a batch is yielded, we add another task to `task_q` on lines 23-25. 
 
 If all batches have been yielded, or if the loop is terminated early (such as only looping over one batch as a test), we move to the `finally` block. 
 
@@ -415,9 +415,9 @@ If all batches have been yielded, or if the loop is terminated early (such as on
                 p.join()
 ```
 
-On lines 5-6 we send the `_END` token to the workers which, looking back on the worker function `_mp_worker` above, we see that it breaks the worker loop, adds the `_END` token to `out_q`, then exits. Next, on lines 11-14 we drain the `out_q` until all `_END` tokens have been retrieved. Lastly, on lines 17-18, we wait for the processes to exit.
+On lines 5-6 we send the `_END` token to the workers which, looking back on the worker function `_mp_worker` above, we see that it breaks the worker loop, adds the `_END` token to `out_q`, then exits. Next, on lines 11-14 we drain `out_q` until all `_END` tokens have been retrieved. Lastly, on lines 17-18, we wait for the processes to exit.
 <br/>
-### **Speed of Multiprocessing Dataloader**
+### **Speed of Multiprocessing DataLoader**
 <br/>
 Using the same dataset and batch size as before, we can see how long it takes to loop over every batch:
 
@@ -441,11 +441,11 @@ print(f"Processed {n_batches} batches in {time.time() - now:.2f} seconds, time p
 Processed 167 batches in 21.62 seconds, time per batch 0.1294 seconds
 ```
 
-> So we see that the non-multiprocessing dataloader took 142 seconds to loop over every batch, whereas the multiprocesssing dataloader took only 22 seconds! **Over 6 times faster!** 
+> So we see that the non-multiprocessing dataloader took 142 seconds to loop over every batch, whereas the multiprocessing dataloader took only 22 seconds! **Over 6 times faster!** 
 
 ### **Final Note**
 
-The above implementation is a simplified example of the pytorch dataloader, capturing the core multiprocessing pattern, however it intentionally omits many additional useful features. 
+The above implementation is a simplified example of the PyTorch dataloader, capturing the core multiprocessing pattern, however it intentionally omits many additional useful features. 
 Some examples of the additional features are given here:
 1. The batch indices are not pre-calculated as in our example, but made on the fly to allow for shuffling and specific sampling patterns. 
 2. You can opt to drop the last batch if it has fewer samples in it than `batch_size`
@@ -454,6 +454,6 @@ Some examples of the additional features are given here:
 
 The goal of this post was not to fully recreate the PyTorch dataloader, but to introduce you to the basic design concepts that make parallel computing so effective. 
 
-I hope you have enjoyed reading this as much as I have writing it!
+I hope you enjoyed reading this as much as I have writing it!
 
 
