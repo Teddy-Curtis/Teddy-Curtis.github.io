@@ -443,7 +443,7 @@ Processed 167 batches in 21.62 seconds, time per batch 0.1294 seconds
 
 > So we see that the non-multiprocessing dataloader took 142 seconds to loop over every batch, whereas the multiprocessing dataloader took only 22 seconds! **Over 6 times faster!** 
 
-### **Final Note**
+## **Final Note**
 
 The above implementation is a simplified example of the PyTorch dataloader, capturing the core multiprocessing pattern, however it intentionally omits many additional useful features. 
 Some examples of the additional features are given here:
