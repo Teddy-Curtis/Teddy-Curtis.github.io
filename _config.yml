@@ -94,7 +94,7 @@ bing_site_verification: # out your bing-site-verification ID (Bing Webmaster)
 # -----------------------------------------------------------------------------
 
 blog_name: Teddy's Blog # blog_name will be displayed in your blog page
-blog_description: Welcome to my machine learning blog, exploring new and old ideas in AI. 
+blog_description: "Deep dives into machine learning: theory, implementation, and insights." # blog_description will be displayed in your blog page
 permalink: /blog/:year/:title/
 lsi: false # produce an index for related posts
 
