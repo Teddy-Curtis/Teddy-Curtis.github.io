@@ -29,6 +29,11 @@ social: true # includes social icons at the bottom of the page
 #   limit: 3 # leave blank to include all the blog posts
 ---
 
+
+***CERN physicist engineering robust, scalable ML systems***
+
+*****
+
 I am a CERN physicist who worked on the CMS Experiment during my PhD at Imperial College London from 2021 to 2025. 
 My [thesis]({{ '/assets/thesis.pdf' | relative_url }}) was on searches for dark matter production at the LHC, which involved finding rare signatures of new physics in 100+ TB datasets of messy particle collisions. Ultimately, my work led to the strongest-ever constraints for certain dark matter theories. An additional thesis project included using graph neural networks for electron/photon identification, resulting in nearly a 30% increase in signal efficiency for a fixed background rejection compared to previous methods using BDTs, while omitting the need for manual feature extraction.  
 
