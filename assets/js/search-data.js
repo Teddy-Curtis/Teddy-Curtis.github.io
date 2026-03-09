@@ -23,7 +23,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "post-multiprocessing-dataloader",
+        },{id: "post-rl-to-play-connect-4",
+        
+          title: "RL to play Connect-4",
+        
+        description: "Reinforcement learning to play connect-4",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/connect-4/";
+          
+        },
+      },{id: "post-multiprocessing-dataloader",
         
           title: "Multiprocessing Dataloader",
         
