@@ -11,7 +11,7 @@ toc:
 tabs: true
 ---
 
-# Diffusion Models from Scratch: Generating MNIST Digits
+# **Diffusion Models from Scratch: Generating MNIST Digits**
 
 Diffusion models have recently become one of the most successful classes
 of generative models in machine learning. They are used in systems such
@@ -50,7 +50,7 @@ The idea, exemplified in Figure 1 above, is conceptually simple:
 2.  **Forward diffusion**: Gradually add Gaussian noise following a known probability distribution $q(x_t \mid x_{t-1})$, until the image becomes pure noise.
 3.  **Reverse diffusion**: Train a neural network to **reverse this noising process**, which is represented as $ p_\theta(x_{t-1} \mid x_t) $ where $$ \theta $$ are the learnable parameters.
 
-After training, we can start from random noise and repeatedly denoise it to generate new images.
+After training, we can start from random noise and repeatedly denoise it to generate new images. The outline given here largely follows the paper [Denoising Diffusion Probabilistic Models](https://arxiv.org/pdf/2006.11239) (DDPM).
 
 ------------------------------------------------------------------------
 
@@ -279,8 +279,6 @@ $$
 x_t = \sqrt{\bar{\alpha}_t}\,x_0 + \sqrt{1-\bar{\alpha}_t}\,\epsilon
 $$
 
-This is exactly the quantity computed by functions such as `q_sample` in a PyTorch diffusion implementation.
-
 ------------------------------------------------------------------------
 
 # **Why Predict Noise?**
@@ -357,7 +355,7 @@ Here:
 - $\alpha_t = 1-\beta_t$
 - $\bar{\alpha}_t = \alpha_0 *\alpha_1... * \alpha_t$
 
-This equation tells us how to compute the **mean of the previous timestep** given the current noisy image and the predicted noise.
+This equation tells us how to compute the **mean of the previous timestep** given the current noisy image and the predicted noise. The full derivation can be found in the extremely useful blog by [Lilian Weng](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/).
 
 An important intuition is that a noisy image $x_t$ does **not uniquely determine** the previous image $x_{t-1}$. Many slightly less noisy images could plausibly have produced the current noisy observation.
 
@@ -389,7 +387,7 @@ $$
 q(x_{t-1} \mid x_t, x_0)
 $$
 
-which describes the distribution of the previous timestep given both the current noisy image and the original clean image. The full derivation can be found in the extremely useful blog by [Lilian Weng](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/).
+which describes the distribution of the previous timestep given both the current noisy image and the original clean image. 
 
 This posterior is also Gaussian:
 
@@ -542,7 +540,7 @@ Each code block below implements one piece of this pipeline.
 
 ---
 
-## Hyperparameters and Diffusion Schedule
+## **Hyperparameters and Diffusion Schedule**
 
 ```python
 image_size  = 28
@@ -643,7 +641,7 @@ So this whole block is setting up the scalar coefficients that appear throughout
 
 ---
 
-## Gathering Timestep-Dependent Scalars
+## **Gathering Timestep-Dependent Scalars**
 
 ```python
 def gatherAndExpand(a, timesteps):
@@ -683,7 +681,7 @@ it is turning the abstract mathematical quantity $$ \beta_t $$ into a tensor tha
 
 ---
 
-## MNIST Dataset
+## **MNIST Dataset**
 
 ```python
 transform = transforms.Compose([
@@ -713,7 +711,7 @@ This is useful because the diffusion process repeatedly adds Gaussian noise, so 
 
 ---
 
-## Forward Noising: Implementing $$q(x_t \mid x_0)$$
+## **Forward Noising: Implementing** $$\boldsymbol{q(x_t \mid x_0)}$$
 
 ```python
 def q_sample(x0, t, noise=None):
@@ -783,7 +781,7 @@ This is the closed-form version of the forward noising process derived earlier, 
 
 ---
 
-## Visualizing the Forward Process
+## **Visualizing the Forward Process**
 
 ```python
 x0 = train_dataset[0][0].unsqueeze(0).to(device)
@@ -825,7 +823,7 @@ This matches the theoretical picture of the forward process gradually destroying
 
 ---
 
-## The Conditional U-Net
+## **The Conditional U-Net**
 
 ```python
 
@@ -944,7 +942,7 @@ This is why the network output has the same shape as the input image: the model 
 
 ---
 
-## Training Objective: Predicting the Noise
+## **Training Objective: Predicting the Noise**
 
 ```python
 def getBatchLoss(model, x0, t, y):
@@ -987,7 +985,7 @@ is directly implementing the noise-prediction objective discussed earlier.
 
 ---
 
-## The Training Loop
+## **The Training Loop**
 
 ```python
 for step, (x0, y) in enumerate(train_loader):
@@ -1031,7 +1029,7 @@ lets us sample any timestep in one step. This is exactly the practical advantage
 
 ---
 
-## Reverse Sampling: Implementing $$p_\theta(x_{t-1}\mid x_t)$$
+## **Reverse Sampling: Implementing** $$\boldsymbol{p_\theta(x_{t-1}\mid x_t)}$$
 
 ```python
 @torch.no_grad()
@@ -1138,7 +1136,7 @@ This is exactly the reverse-sampling rule derived earlier: compute the mean of t
 
 ---
 
-## Generating a Single Digit Step by Step
+## **Generating a Single Digit Step by Step**
 
 ```python
 @torch.no_grad()
@@ -1236,7 +1234,7 @@ plt.show()
 
 ---
 
-## Generating a Batch of Conditional Samples
+## **Generating a Batch of Conditional Samples**
 
 
 ```python
@@ -1341,7 +1339,7 @@ for digit in range(10):
 
 ---
 
-## Summary of the Theory-to-Code Mapping
+## **Summary of the Theory-to-Code Mapping**
 
 The implementation closely mirrors the mathematical derivation:
 
