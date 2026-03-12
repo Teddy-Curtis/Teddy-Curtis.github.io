@@ -20,16 +20,16 @@ synthesis**, **video generation**, and even **protein structure
 modelling**. Their strength lies in stable training, strong sample
 quality, and a mathematically elegant probabilistic formulation.
 
-In this post we will:
+In this post, we will:
 
 1.  Introduce what diffusion models are used for
 2.  Derive the core mathematics behind diffusion models
 3.  Explain how the models are trained in practice
-4.  Walk through a **minimal MNIST implementation**
+4.  Walk through a **minimal MNIST implementation.**
 5.  Discuss improvements and limitations
 
 The target audience is readers comfortable with machine learning and
-probability, but new to diffusion models. This post also includes an accompanying python script, which you can find in the Google [colab notebook](https://colab.research.google.com/drive/1B5VAw2z6iG9qK1sVW6YQFekXL4qy3XWz?usp=sharing). 
+probability, but new to diffusion models. This post also includes an accompanying Python script, which you can find in the Google [Colab notebook](https://colab.research.google.com/drive/1B5VAw2z6iG9qK1sVW6YQFekXL4qy3XWz?usp=sharing). 
 
 ------------------------------------------------------------------------
 
@@ -50,8 +50,7 @@ The idea, exemplified in Figure 1 above, is conceptually simple:
 2.  **Forward diffusion**: Gradually add Gaussian noise following a known probability distribution $q(x_t \mid x_{t-1})$, until the image becomes pure noise.
 3.  **Reverse diffusion**: Train a neural network to **reverse this noising process**, which is represented as $ p_\theta(x_{t-1} \mid x_t) $ where $$ \theta $$ are the learnable parameters.
 
-After training, we can start from random noise and repeatedly denoise it
-to generate new images.
+After training, we can start from random noise and repeatedly denoise it to generate new images.
 
 ------------------------------------------------------------------------
 
@@ -356,7 +355,7 @@ Here:
 - $x_t$ is the noisy image at timestep $t$
 - $\epsilon_\theta(x_t,t)$ is the noise predicted by the neural network
 - $\alpha_t = 1-\beta_t$
-- $\bar{\alpha}_t = \alpha_0 *\alpha_1 ... * \alpha_t$
+- $\bar{\alpha}_t = \alpha_0 *\alpha_1... * \alpha_t$
 
 This equation tells us how to compute the **mean of the previous timestep** given the current noisy image and the predicted noise.
 
@@ -470,7 +469,7 @@ To generate a new image:
 
 1. Start from pure Gaussian noise $$ x_T \sim \mathcal{N}(0,I) $$
 
-2. Repeatedly apply the reverse diffusion step $$ x_{t-1} \sim p_\theta(x_{t-1} \mid x_t) $$ for $$ t = T, T-1, ..., 1 $$
+2. Repeatedly apply the reverse diffusion step $$ x_{t-1} \sim p_\theta(x_{t-1} \mid x_t) $$ for $$ t = T, T-1,..., 1 $$
 
 3. After the final step we obtain $$ x_0 $$ which is a generated sample from the learned data distribution.
 
@@ -490,7 +489,7 @@ In practice, this means that starting from pure noise, the model slowly reveals 
 ------------------------------------------------------------------------
 # **Connecting the Theory to the Code**
 
-Now we will connect the diffusion equations from the previous sections to the MNIST implementation. The goal of this part of the post is not just to show the code, but to make explicit exactly which mathematical object each block of code is computing.
+Now we will connect the diffusion equations from the previous sections to the MNIST implementation.. The goal of this part of the post is not just to show the code, but to make explicit exactly which mathematical object each block of code is computing.
 
 Throughout this section, the key theoretical quantities are:
 
