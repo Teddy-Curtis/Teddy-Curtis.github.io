@@ -23,7 +23,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "post-rl-to-play-connect-4",
+        },{id: "post-diffusion-models-with-mnist",
+        
+          title: "Diffusion models with MNIST",
+        
+        description: "Fundamentals of diffusion models exemplified with MNIST",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/diffusion_mnist/";
+          
+        },
+      },{id: "post-rl-to-play-connect-4",
         
           title: "RL to play Connect-4",
         
