@@ -51,7 +51,15 @@
                   {%- assign rendered_href = href | prepend: '/' | relative_url -%}
                 {%- endif -%}
               {%- endif -%}
-              <a class="rp-link" href="{{ rendered_href }}"{% if is_external or is_pdf %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label | default: link.title | default: 'Link' }}</a>
+              <a
+                class="rp-link"
+                href="{{ rendered_href }}"
+                {% if is_external or is_pdf %}
+                  target="_blank" rel="noopener noreferrer"
+                {% endif %}
+              >
+                {{- link.label | default: link.title | default: 'Link' -}}
+              </a>
             {%- endif -%}
           {%- endfor -%}
         </footer>
