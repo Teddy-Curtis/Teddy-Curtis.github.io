@@ -3,8 +3,8 @@
 # -----------------------------------------------------------------------------
 
 title: Teddy Curtis Blog # the website title (if blank, full name will be used instead)
-first_name: Teddy 
-middle_name: 
+first_name: Teddy
+middle_name:
 last_name: Curtis
 contact_note: >
   The best way to reach me is through my email.
@@ -366,6 +366,7 @@ imagemagick:
     - 1400
   input_directories:
     - assets/img/
+    - assets/posts/
   input_formats:
     - ".jpg"
     - ".jpeg"
