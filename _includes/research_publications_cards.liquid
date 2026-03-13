@@ -1,0 +1,61 @@
+{%- assign items = include.items | default: site.data.research_publications -%}
+
+<div class="rp-grid">
+  {%- for item in items -%}
+    <section class="rp-card" aria-label="{{ item.title | escape }}">
+      <header class="rp-card__header">
+        <h2 class="rp-card__title">{{ item.title }}</h2>
+        {%- if item.tags and item.tags.size > 0 -%}
+          <div class="rp-card__tags" aria-label="Tags">
+            {%- for tag in item.tags -%}
+              <span class="rp-tag">{{ tag }}</span>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </header>
+
+      {%- if item.summary -%}
+        <div class="rp-card__summary">{{ item.summary | markdownify }}</div>
+      {%- endif -%}
+
+      {%- if item.details and item.details.size > 0 -%}
+        <ul class="rp-card__details">
+          {%- for detail in item.details -%}
+            <li>{{ detail | markdownify | replace: '<p>', '' | replace: '</p>', '' | strip }}</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- if item.links and item.links.size > 0 -%}
+        <footer class="rp-card__links" aria-label="Links">
+          {%- for link in item.links -%}
+            {%- assign href = link.url | default: link.href | default: link.permalink -%}
+            {%- if href and href != '' -%}
+              {%- assign is_external = href contains '://' -%}
+              {%- assign is_anchor = href | slice: 0, 1 -%}
+              {%- assign is_anchor = is_anchor == '#' -%}
+              {%- assign is_mailto = href | slice: 0, 7 -%}
+              {%- assign is_mailto = is_mailto == 'mailto:' -%}
+              {%- assign is_tel = href | slice: 0, 4 -%}
+              {%- assign is_tel = is_tel == 'tel:' -%}
+              {%- assign is_pdf = href | downcase | slice: -4, 4 -%}
+              {%- assign is_pdf = is_pdf == '.pdf' -%}
+
+              {%- if is_external or is_anchor or is_mailto or is_tel -%}
+                {%- assign rendered_href = href -%}
+              {%- else -%}
+                {%- assign first_char = href | slice: 0, 1 -%}
+                {%- if first_char == '/' -%}
+                  {%- assign rendered_href = href | relative_url -%}
+                {%- else -%}
+                  {%- assign rendered_href = href | prepend: '/' | relative_url -%}
+                {%- endif -%}
+              {%- endif -%}
+              <a class="rp-link" href="{{ rendered_href }}"{% if is_external or is_pdf %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label | default: link.title | default: 'Link' }}</a>
+            {%- endif -%}
+          {%- endfor -%}
+        </footer>
+      {%- endif -%}
+    </section>
+  {%- endfor -%}
+</div>
