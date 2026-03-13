@@ -1,0 +1,33 @@
+# Cards for the “Research & Publications” page.
+# Add/remove items freely. Each item supports: title, summary, details[], tags[], links[].
+
+- title: "Searches for Dark Matter Production at the LHC"
+  summary: "PhD project that focused on searching for dark matter signatures in proton-proton collision data collected by the CMS experiment at the Large Hadron Collider (LHC). The research involved analyzing data from high-energy collisions to identify potential dark matter candidates and constrain a dark matter model called the Inert Doublet Model."
+  details:
+    - "PhD thesis project at Imperial College London"
+    - "**Paper accepted to Moriond EWK 2026**, the most prestigious conference in the field of high-energy particle physics"
+    - "**Accepted to the most prestigious high-energy physics journal**, the Journal of High Energy Physics (JHEP). The paper is currently in the final stages of publication and will be available soon."  
+  tags:
+    - "ML"
+    - "Physics"
+    - "CMS"
+    - "LHC"
+  links:
+    - label: "Thesis"
+      url: "/assets/thesis.pdf"
+
+- title: "Search for Additional Scalar Bosons within the Inert Doublet Model in a Final State with Two Leptons at the FCC-ee"
+  summary: "Sensitivity study for the Future Circular Collider (FCC-ee) to search for additional scalar bosons predicted by the Inert Doublet Model. The research involved simulating proton-proton collision events at the FCC-ee and analyzing the potential signatures of these scalar bosons in a final state with two leptons, aiming to assess the collider's capability to discover or constrain the model."
+  details:
+    - "**Accepted at one of the most prestigious high-energy physics journals**, The European Physical Journal C (EPJC)."
+  links:
+    - label: "Publication"
+      url: "https://link.springer.com/article/10.1140/epjc/s10052-025-14622-y"
+
+- title: "Full 12-lead ECG using a sequential single-electode measurements"
+  summary: "Research project focused on developing a method to reconstruct a full 12-lead electrocardiogram (ECG) using sequential measurements from a single electrode. The study involved designing an algorithm to process the sequential data and accurately reconstruct the standard 12-lead ECG, which is crucial for diagnosing various cardiac conditions, whilst making clinical-grade ECG monitoring more accessible."
+  details:
+    - "**Patent approved** for the algorithm."
+  links:
+    - label: "Patent"
+      url: "https://patents.google.com/patent/EP3973875B1"

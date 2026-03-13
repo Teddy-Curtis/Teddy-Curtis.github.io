@@ -1,0 +1,106 @@
+/* Research & Publications card grid */
+
+.rp-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+@media (min-width: 720px) {
+  .rp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rp-card {
+  background: var(--global-card-bg-color);
+  border: 1px solid var(--global-divider-color);
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+
+  /* Allow height to fit content (avoids large empty space). */
+  min-height: 240px;
+
+  display: flex;
+  flex-direction: column;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.rp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(in srgb, var(--global-theme-color) 35%, var(--global-divider-color));
+}
+
+.rp-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.rp-card__title {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.rp-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.rp-tag {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--global-divider-color);
+  color: var(--global-text-color-light);
+}
+
+.rp-card__summary {
+  margin: 0.6rem 0 0;
+  color: var(--global-text-color);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.rp-card__summary p {
+  margin: 0;
+}
+
+.rp-card__details {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--global-text-color-light);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.rp-card__links {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+}
+
+.rp-link {
+  display: inline-block;
+  padding: 0.35rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid var(--global-divider-color);
+  text-decoration: none;
+  font-size: 0.85rem;
+  color: var(--global-text-color);
+  background: color-mix(in srgb, var(--global-card-bg-color) 80%, var(--global-theme-color));
+}
+
+.rp-link:hover {
+  border-color: var(--global-theme-color);
+  color: var(--global-theme-color);
+  background: color-mix(in srgb, var(--global-card-bg-color) 90%, var(--global-theme-color));
+}
+
