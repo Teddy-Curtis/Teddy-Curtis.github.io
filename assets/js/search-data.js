@@ -30,7 +30,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "post-diffusion-models-with-mnist",
+        },{id: "post-speculative-decoding",
+        
+          title: "Speculative Decoding",
+        
+        description: "Accelerating LLM Inference using Speculative Decoding",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/llm_speculative_decoding/";
+          
+        },
+      },{id: "post-diffusion-models-with-mnist",
         
           title: "Diffusion models with MNIST",
         
