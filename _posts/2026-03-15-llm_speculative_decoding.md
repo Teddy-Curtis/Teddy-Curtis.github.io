@@ -1,21 +1,21 @@
-# Speculative Decoding From Scratch
+---
+layout: post
+title: Speculative Decoding
+date: 2026-03-16 10:45:00
+description: Accelerating LLM Inference using Speculative Decoding
+tags: LLM Inference PyTorch HuggingFace 
+categories: LLM
+disqus_comments: true
+toc:
+  beginning: true
+tabs: true
+---
 
-Created on March 15, 2026
-
-2026 · LLMs · inference · speculative decoding · PyTorch · Hugging Face
-
-Table of Contents:
-
-- Why normal decoding is slow
-- Speculative decoding
-- Acceptance and correction rule
-- Why block verification works
-- Implementation details
-- Benchmark results
-- How this can be improved
-- Final note
-
-* * *
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+    {% include figure.liquid loading="eager" path="assets/posts/2026-03-15-llm_speculative_decoding/speculative_vs_baseline_illustrative.gif" class="img-fluid rounded z-depth-1 w-100 d-block mx-auto" zoomable=true caption="Figure 1: Example of using speculative decoding to increase inference speed." %}
+    </div>
+</div>
 
 Large language models generate text one token at a time. Even when a prompt is short, each new token requires another forward pass through the model. For small models this is manageable, but for larger models inference quickly becomes expensive. In practice, this means that generation latency is often dominated not by the prompt, but by the long tail of repeated autoregressive decoding steps.
 
@@ -25,20 +25,20 @@ The full code for this post lives in [this repository](https://github.com/Teddy-
 
 ## Why normal decoding is slow
 
-With standard autoregressive decoding, we start from a prompt \(x_{1:n}\) and generate the next token \(x_{n+1}\) from
+With standard autoregressive decoding, we start from a prompt $$x_{1:n}$$ and generate the next token $$x_{n+1}$$ from
 
 $$
 p(x_{n+1} \mid x_{1:n}).
 $$
 
-After sampling or greedily choosing \(x_{n+1}\), we append it to the sequence and repeat:
+After sampling or greedily choosing $$x_{n+1}$$, we append it to the sequence and repeat:
 
 $$
 p(x_{n+2} \mid x_{1:n+1}), \quad
 p(x_{n+3} \mid x_{1:n+2}), \quad \ldots
 $$
 
-Even with a KV cache, this still means one target-model decode step per output token. If we want to generate \(T\) new tokens, we still need \(T\) separate target-model decoding steps. For a large model, that sequential dependence is the bottleneck.
+Even with a KV cache, this still means one target-model decode step per output token. If we want to generate $$T$$ new tokens, we still need $$T$$ separate target-model decoding steps. For a large model, that sequential dependence is the bottleneck.
 
 So the question speculative decoding tries to answer is:
 
@@ -48,8 +48,8 @@ So the question speculative decoding tries to answer is:
 
 Speculative decoding introduces a second model:
 
-- a small **draft model** \(p\)
-- a larger **target model** \(q\)
+- a small **draft model** $$p$$
+- a larger **target model** $$q$$
 
 The draft model is cheap, so we let it propose several candidate tokens:
 
@@ -57,14 +57,14 @@ $$
 \hat{x}_{n+1}, \hat{x}_{n+2}, \ldots, \hat{x}_{n+\gamma}
 $$
 
-where \(\gamma\) is the draft block size.
+where $$\gamma$$ is the draft block size.
 
 The target model then verifies that whole block in one forward pass on top of the cached accepted prefix. If many of those draft tokens are accepted, then one expensive target-model verification pass can replace several expensive target-model decode steps.
 
 At a high level, the loop is:
 
 1. Prime both draft and target caches on the same prompt.
-2. Ask the draft model to propose \(\gamma\) tokens.
+2. Ask the draft model to propose $$\gamma$$ tokens.
 3. Run the target model on the proposed block using its cached prefix.
 4. Accept or reject each proposed token.
 5. If all proposed tokens are accepted, sample one extra bonus token from the target.
@@ -95,7 +95,7 @@ $$
 
 where $x$ is the next token.
 
-This distribution is used to verify the **first** proposed draft token \(C\).
+This distribution is used to verify the **first** proposed draft token $$C$$.
 
 Now the target model processes the proposed block `[C, D, E]` in one forward pass on top of the cached prefix. The important point is that a causal transformer returns logits at **every** position in the block, not just for the final next token. Because the model is causal, each position only attends to earlier tokens, so those logits are still valid autoregressive next-token distributions.
 
@@ -107,19 +107,19 @@ $$
 q(x \mid A, B),
 $$
 
-- the logits at the position of \(C\), which represent
+- the logits at the position of $$C$$, which represent
 
 $$
 q(x \mid A, B, C),
 $$
 
-- the logits at the position of \(D\), which represent
+- the logits at the position of $$D$$, which represent
 
 $$
 q(x \mid A, B, C, D),
 $$
 
-- the logits at the position of \(E\), which represent
+- the logits at the position of $$E$$, which represent
 
 $$
 q(x \mid A, B, C, D, E).
@@ -133,19 +133,19 @@ $$
 q(C \mid A, B)
 $$
 
-- to verify \(D\), use
+- to verify $$D$$, use
 
 $$
 q(D \mid A, B, C)
 $$
 
-- to verify \(E\), use
+- to verify $$E$$, use
 
 $$
 q(E \mid A, B, C, D)
 $$
 
-- and if all three are accepted, the final logits after \(E\) can be used to sample one extra bonus token after
+- and if all three are accepted, the final logits after $$E$$ can be used to sample one extra bonus token after
 
 $$
 [A, B, C, D, E].
@@ -155,13 +155,13 @@ So the target is **not** just computing the probability of the next token after 
 
 ### Why this does not leak future information
 
-At first glance, it can seem like if the target processes `[C, D, E]` all at once, then the logits for \(C\) might somehow already depend on \(D\) and \(E\). But that is not how a decoder-only causal transformer works.
+At first glance, it can seem like if the target processes `[C, D, E]` all at once, then the logits for $$C$$ might somehow already depend on $$D$$ and $$E$$. But that is not how a decoder-only causal transformer works.
 
 The causal attention mask forces each position to attend only to earlier positions. So:
 
-- the distribution used to verify \(C\) cannot see \(D\) or \(E\)
-- the distribution used to verify \(D\) can see \(C\), but not \(E\)
-- the distribution used to verify \(E\) can see \(C\) and \(D\)
+- the distribution used to verify $$C$$ cannot see $$D$$ or $$E$$
+- the distribution used to verify $$D$$ can see $$C$$, but not $$E$$
+- the distribution used to verify $$E$$ can see $$C$$ and $$D$$
 
 In table form:
 
@@ -194,7 +194,7 @@ In speculative decoding, the draft has already proposed `[C, D, E]`, so the targ
 
 So the right intuition is:
 
-- the target still does most of the same large matrix math for those tokens
+- the target still does most of the same large matrix maths for those tokens
 - speculative decoding does not remove all target compute
 - the speedup comes from doing verification in larger chunks and cutting down sequential overhead
 - if enough draft tokens are accepted, one expensive target verification pass can replace several expensive target decode steps
@@ -204,7 +204,7 @@ So the right intuition is:
 
 ## Acceptance and correction rule
 
-Suppose the draft proposes token \(x\) at some step. Let
+Suppose the draft proposes token $$x$$ at some step. Let
 
 $$
 p(x) = p_{\text{draft}}(x \mid \text{prefix}),
@@ -224,7 +224,7 @@ $$
 
 So if the target likes the proposed token at least as much as the draft does, it is accepted with probability 1. If the target assigns lower probability, it is accepted only proportionally.
 
-This formula is doing something very specific. The token \(x\) has already been sampled from the draft distribution \(p\). So the question is not:
+This formula is doing something very specific. The token $$x$$ has already been sampled from the draft distribution $$p$$. So the question is not:
 
 - "would the target independently sample the same token?" 
 
@@ -232,7 +232,7 @@ This formula is doing something very specific. The token \(x\) has already been 
 
 Instead, the question is:
 
-- "given that the draft sampled \(x\), does the target assign enough probability mass to \(x\) for us to keep it?"
+- "given that the draft sampled $$x$$, does the target assign enough probability mass to $$x$$ for us to keep it?"
 
 This matters especially when decoding is sampled rather than greedy. In a normal language-model decode, we might start from
 
@@ -240,13 +240,13 @@ $$
 q_{\text{target}}(x \mid \text{prefix}),
 $$
 
-restrict to the top-\(k\) candidates, and then sample randomly from that truncated distribution. Once randomness enters the process, two models can have very similar or even identical probability distributions and still end up selecting different tokens on a particular run. So speculative decoding cannot simply ask:
+restrict to the top-$$k$$ candidates, and then sample randomly from that truncated distribution. Once randomness enters the process, two models can have very similar or even identical probability distributions and still end up selecting different tokens on a particular run. So speculative decoding cannot simply ask:
 
 - "did the draft and target choose the same token?"
 
 That would reject too many perfectly reasonable draft proposals just because of sampling noise.
 
-Instead, speculative decoding compares the probability distributions themselves, evaluated at the specific token that the draft actually sampled. That is why the acceptance rule is based on \(q(x)\) and \(p(x)\), not on whether the target would have independently sampled the exact same token on that run.
+Instead, speculative decoding compares the probability distributions themselves, evaluated at the specific token that the draft actually sampled. That is why the acceptance rule is based on $$q(x)$$ and $$p(x)$$, not on whether the target would have independently sampled the exact same token on that run.
 
 That is why the acceptance rule depends on the ratio
 
@@ -292,7 +292,7 @@ $$
 \alpha(x) = \frac{q(x)}{p(x)} < 1.
 $$
 
-Now the draft has effectively "oversampled" that token relative to the target. The acceptance rule compensates for that by only accepting the token with probability \(q(x)/p(x)\).
+Now the draft has effectively "oversampled" that token relative to the target. The acceptance rule compensates for that by only accepting the token with probability $$q(x)/p(x)$$.
 
 This is the key idea: the draft can propose tokens freely, but if it proposes a token too often compared with the target distribution, the target will reject it proportionally often enough to correct the mismatch.
 
@@ -304,14 +304,14 @@ $$
 
 is:
 
-- the token \(x\) has already been chosen by the draft
+- the token $$x$$ has already been chosen by the draft
 - the target is not resampling from scratch
-- the target is checking whether that specific token has enough probability under \(q\)
-- the ratio \(q(x)/p(x)\) measures whether the draft proposed that token too aggressively or not
+- the target is checking whether that specific token has enough probability under $$q$$
+- the ratio $$q(x)/p(x)$$ measures whether the draft proposed that token too aggressively or not
 
-This also explains why sampled decoding usually reduces speculative speedups in practice. Once temperature and top-\(k\) sampling are enabled, the draft is more likely to sample tokens that are plausible under \(p\) but not especially favored by \(q\). The acceptance rule still keeps the overall algorithm aligned with the target distribution, but the acceptance rate often falls, which reduces the speed benefit.
+This also explains why sampled decoding usually reduces speculative speedups in practice. Once temperature and top-$$k$$ sampling are enabled, the draft is more likely to sample tokens that are plausible under $$p$$ but not especially favored by $$q$$. The acceptance rule still keeps the overall algorithm aligned with the target distribution, but the acceptance rate often falls, which reduces the speed benefit.
 
-If a token is rejected, we do not simply resample from \(q\). Instead, we sample from the positive part of
+If a token is rejected, we do not simply resample from $$q$$. Instead, we sample from the positive part of
 
 $$
 q - p,
@@ -441,7 +441,7 @@ The strongest win came from a long greedy decode with:
 - draft model: `distilgpt2`
 - target model: `gpt2-xl`
 - `max_new_tokens = 300`
-- draft block size \(= 6\)
+- draft block size $$= 6$$
 
 That benchmark gave:
 
@@ -450,7 +450,7 @@ That benchmark gave:
 - average acceptance rate: `0.7146`
 - speedup vs baseline: `1.6438x`
 
-This was not the first configuration I tried, which is exactly why I think the final result is interesting. The implementation only became faster than the baseline in a favorable regime:
+This was not the first configuration I tried, which is exactly why I think the final result is interesting. The implementation only became faster than the baseline in a favourable regime:
 
 - large target model
 - longer generations
