@@ -21,6 +21,7 @@ Large language models generate text one token at a time. Even when a prompt is s
 
 In this post, I implement speculative decoding from scratch in PyTorch and Hugging Face, using a small **draft model** and a larger **target model**. The core idea is simple: let the cheap model propose a short block of future tokens, then ask the expensive model to verify that block in one go. If the target agrees with most of the proposals, we can reduce the number of expensive target-model decoding steps and improve throughput.
 
+This implementation follows the core speculative decoding algorithm of [Leviathan et al.](https://arxiv.org/abs/2211.17192), but is written as a from-scratch PyTorch/Hugging Face reference implementation rather than a production-optimised inference stack.
 The full code for this post lives in [this repository](https://github.com/Teddy-Curtis/LLM_Speculative_Decode), with the main scripts in `scripts/`. This can also be run with the following [Google Colab notebook](https://colab.research.google.com/drive/1qiNuh9T63f10LSPZqQ3qsOnt8bX2Whp6?usp=sharing). I will first explain the decoding problem and the speculative decoding algorithm at the theory level, and only after that move on to the implementation and the benchmark results.
 
 ## Why normal decoding is slow
@@ -228,8 +229,6 @@ This formula is doing something very specific. The token $$x$$ has already been 
 
 - "would the target independently sample the same token?" 
 
-<!-- Because when normally using an LLM model you might get $ q_{\text{target}}(x \mid \text{prefix}) $, from which you take the tokens with the top-30 probabilities, then you randomly sample from them using the probability distribution. In this case even if the draft and target had identical distributions, you might end up with a different token because of the randomness. This is why we compare the probability distributions and not just the selected token.   -->
-
 Instead, the question is:
 
 - "given that the draft sampled $$x$$, does the target assign enough probability mass to $$x$$ for us to keep it?"
@@ -309,7 +308,7 @@ is:
 - the target is checking whether that specific token has enough probability under $$q$$
 - the ratio $$q(x)/p(x)$$ measures whether the draft proposed that token too aggressively or not
 
-This also explains why sampled decoding usually reduces speculative speedups in practice. Once temperature and top-$$k$$ sampling are enabled, the draft is more likely to sample tokens that are plausible under $$p$$ but not especially favored by $$q$$. The acceptance rule still keeps the overall algorithm aligned with the target distribution, but the acceptance rate often falls, which reduces the speed benefit.
+This also explains why sampled decoding usually reduces speculative speedups in practice. Once temperature and top-$$k$$ sampling are enabled, the draft is more likely to sample tokens that are plausible under $$p$$ but not especially favoured by $$q$$. The acceptance rule still keeps the overall algorithm aligned with the target distribution, but the acceptance rate often falls, which reduces the speed benefit.
 
 If a token is rejected, we do not simply resample from $$q$$. Instead, we sample from the positive part of
 
@@ -383,7 +382,7 @@ The helper functions in `scripts/common.py` are:
 - `prime_model_cache(...)`: run the full prompt once and initialize the cache
 - `advance_model_cache(...)`: append one new token to an existing cache
 - `trim_past_key_values(...)`: crop a cache back to a shorter accepted prefix after a rejection
-    - I.e. if the draft model proposes [C, D, E] but the target model only agrees with C but picks a different D and E, then we need to remove D and E from the draft cache. 
+    - For example, if the draft proposes `[C, D, E]` and the target rejects `D`, then only the accepted prefix up to `C` remains valid. The later draft proposals are discarded, so the cache needs to be trimmed back to the accepted prefix before continuing.
 
 ### Speculative decoding in code
 
@@ -485,6 +484,7 @@ There are at least three obvious directions for improvement.
 
 The first improvement is systems-oriented rather than algorithmic. Production inference stacks often combine speculative decoding with:
 
+- Dedicated kernel
 - continuous batching
 - quantization
 - more specialized KV-cache handling
