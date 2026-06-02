@@ -30,7 +30,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/cv/";
           },
-        },{id: "post-speculative-decoding",
+        },{id: "post-the-reparameterization-trick-and-reinforce",
+        
+          title: "The Reparameterization Trick and REINFORCE",
+        
+        description: "What is the reparameterization trick / REINFORCE and why do we need them?",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/reparamTrickAndREINFORCE/";
+          
+        },
+      },{id: "post-speculative-decoding",
         
           title: "Speculative Decoding",
         
