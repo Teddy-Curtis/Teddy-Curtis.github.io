@@ -13,6 +13,8 @@
     - "CMS"
     - "LHC"
   links:
+    - label: "CMS Publication"
+      url: "https://cds.cern.ch/record/2957044"
     - label: "Thesis"
       url: "/assets/thesis.pdf"
 
