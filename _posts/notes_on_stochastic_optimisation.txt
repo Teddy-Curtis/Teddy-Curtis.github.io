@@ -1,0 +1,25 @@
+1. Remove the table of contents, that is added automatically 
+2. Opening section:
+    1. First paragraph is good 
+    2. I think the gaussian example comes out of no where a little bit, maybe it would be better to frame the reparameterization trick as a part of the more general stochastic optimisation problem? And ask: Why do we need to do this reparameterization trick? Or maybe include two very quick ML examples side-by-side, one being the guassian noise and another being the reinforce example?
+3. Supervised learning: parameters inside the function
+    1. Change name to e.g. Regular optimisation problems
+4. A different kind of expectation: parameters inside the distribution
+    1. Stochastic optimization problems
+    2. Use lowercase f(x) instead of F(x).
+    3. Give the RL and the gaussian examples side-by-side to really highlight that they are two examples. Expand out the RL example to be like policy optimisation: here we are trying to maximise the expected reward given a policy over an entire episode, E_{pi_theta}[R]. Clearly this follows the stochastic optimization problem we are speaking about because theta is in distribution we are sampling from. Also expand out the guassian sampling thing a bit more, it seems to come out of nowhere.
+5. A biased die examples
+    1. Give an example of the probabilities for different values of theta. 
+    2. Maybe end this by reiterating that finding the value of theta that optimises this analytically is easy as we will see, but for many situations we cannot do it analytically and so have to rely on MC sample estimates. 
+6. The exact expectation is easy to differentiate
+    1. Change name to "The analytic expectation is easy to differentiate"
+7. The Monte Carlo estimate breaks naive Autograd
+    1. Reiterate that for many problems the analytic form is not available, so instead we have to rely on MC estimates of the expectation value - this is where the issue lies, as the sampling process breaks autograd. 
+    2. When you say "Changing θ changes the probability of seeing a particular roll, but it does not change the value of the roll after it has been sampled." but the "probability" in bold for emphasis. 
+8. Why the sampled die roll has no useful pathwise derivative
+    1. This whole section seems slightly off and not very motivated. 
+    2. The ending where you say "This is exactly why we need a different gradient estimator." is confusing as "gradient estimator" makes it sound like the original expectation we are looking at is the gradient, but that isn't the case necessarily. 
+9. REINFORCE on the biased die
+    1. Maybe include a small note that generally the REINFORCE gradient is parallel to the true gradient, but not necessarily exactly the same, as this is what is seen in e.g. policy optimisation problems. 
+
+I think the term "gradient estimator" really needs to be explained more clearly. 
